@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Calculator with History</title>
+  <style>
+    body {
+      background: #f4f6fb;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    .container {
+      display: flex;
+      gap: 32px;
+      align-items: flex-start;
+    }
+    .calculator {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+      padding: 32px 24px 24px 24px;
+      width: 340px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .display {
+      background: #f0f3fa;
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 2rem;
+      text-align: right;
+      min-height: 48px;
+      word-break: break-all;
+      color: #222;
+      letter-spacing: 1px;
+    }
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    button {
+      padding: 18px 0;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 8px;
+      background: #e7eaf3;
+      color: #222;
+      cursor: pointer;
+      transition: background 0.2s;
+      outline: none;
+    }
+    button:active {
+      background: #d1d6e6;
+    }
+    .operator {
+      background: #4f8cff;
+      color: #fff;
+    }
+    .operator:active {
+      background: #2563eb;
+    }
+    .equals {
+      background: #22c55e;
+      color: #fff;
+      grid-column: span 2;
+    }
+    .equals:active {
+      background: #16a34a;
+    }
+    .clear {
+      background: #f87171;
+      color: #fff;
+    }
+    .clear:active {
+      background: #dc2626;
+    }
+    .history-panel {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      padding: 24px 16px;
+      width: 220px;
+      min-height: 300px;
+      max-height: 420px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .history-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #4f8cff;
+      text-align: center;
+    }
+    .history-entry {
+      font-size: 1rem;
+      color: #333;
+      border-bottom: 1px solid #e7eaf3;
+      padding-bottom: 4px;
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+    .history-expression {
+      color: #888;
+      font-size: 0.95em;
+    }
+    .history-result {
+      color: #22c55e;
+      font-weight: bold;
+      font-size: 1.05em;
+      margin-left: 4px;
+    }
+    .clear-history-btn {
+      margin: 8px auto 0 auto;
+      display: block;
+      background: #f87171;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 16px;
+      cursor: pointer;
+      font-size: 0.95em;
+      transition: background 0.2s;
+    }
+    .clear-history-btn:active {
+      background: #dc2626;
+    }
+    @media (max-width: 800px) {
+      .container {
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+      }
+      .history-panel {
+        width: 98vw;
+        max-width: 340px;
+        min-height: 120px;
+        max-height: 180px;
+        padding: 12px 6px;
+      }
+    }
+    @media (max-width: 400px) {
+      .calculator {
+        width: 98vw;
+        padding: 16px 4px 12px 4px;
+      }
+      .display {
+        font-size: 1.2rem;
+        padding: 10px;
+      }
+      button {
+        font-size: 1rem;
+        padding: 12px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="calculator">
+      <div class="display" id="display">0</div>
+      <div class="buttons">
+        <button class="clear" data-action="clear">C</button>
+        <button data-action="paren">(</button>
+        <button data-action="paren">)</button>
+        <button class="operator" data-action="operator" data-value="/">÷</button>
+        <button data-action="digit" data-value="7">7</button>
+        <button data-action="digit" data-value="8">8</button>
+        <button data-action="digit" data-value="9">9</button>
+        <button class="operator" data-action="operator" data-value="*">×</button>
+        <button data-action="digit" data-value="4">4</button>
+        <button data-action="digit" data-value="5">5</button>
+        <button data-action="digit" data-value="6">6</button>
+        <button class="operator" data-action="operator" data-value="-">−</button>
+        <button data-action="digit" data-value="1">1</button>
+        <button data-action="digit" data-value="2">2</button>
+        <button data-action="digit" data-value="3">3</button>
+        <button class="operator" data-action="operator" data-value="+">+</button>
+        <button data-action="digit" data-value="0">0</button>
+        <button data-action="decimal">.</button>
+        <button class="equals" data-action="equals">=</button>
+      </div>
+    </div>
+    <div class="history-panel" id="history-panel">
+      <div class="history-title">History</div>
+      <div id="history-list"></div>
+      <button class="clear-history-btn" id="clear-history-btn">Clear History</button>
+    </div>
+  </div>
+  <script>
+    const display = document.getElementById('display');
+    let expression = '';
+    let lastInput = '';
+    let parenBalance = 0;
+    let history = [];
+    let justCalculated = false;
+
+    function updateDisplay() {
+      display.textContent = expression || '0';
+    }
+
+    function appendValue(val) {
+      if (justCalculated) {
+        // If a result was just shown, start a new expression if input is digit or decimal
+        if ((val >= '0' && val <= '9') || val === '.') {
+          expression = '';
+          parenBalance = 0;
+        }
+        justCalculated = false;
+      }
+      if (val === '.') {
+        const parts = expression.split(/[^0-9.]/);
+        const last = parts[parts.length - 1];
+        if (last.includes('.')) return;
+      }
+      if ('+-*/'.includes(val) && '+-*/'.includes(lastInput)) {
+        expression = expression.slice(0, -1) + val;
+      } else {
+        expression += val;
+      }
+      lastInput = val;
+      updateDisplay();
+    }
+
+    function handleParen(paren) {
+      if (justCalculated) {
+        // If a result was just shown, start a new expression if input is '('
+        if (paren === '(') {
+          expression = '';
+          parenBalance = 0;
+          justCalculated = false;
+        }
+      }
+      if (paren === '(') {
+        if (expression === '' || '+-*/('.includes(lastInput)) {
+          expression += '(';
+          parenBalance++;
+          lastInput = '(';
+          updateDisplay();
+        }
+      } else {
+        if (parenBalance > 0 && !'+-*/('.includes(lastInput)) {
+          expression += ')';
+          parenBalance--;
+          lastInput = ')';
+          updateDisplay();
+        }
+      }
+    }
+
+    function clearAll() {
+      expression = '';
+      lastInput = '';
+      parenBalance = 0;
+      justCalculated = false;
+      updateDisplay();
+    }
+
+    function calculate() {
+      let exp = expression;
+      let origExp = expression;
+      while (parenBalance > 0) {
+        exp += ')';
+        parenBalance--;
+      }
+      try {
+        exp = exp.replace(/×/g, '*').replace(/÷/g, '/');
+        const safeExp = exp.replace(/[^0-9+\-*/().]/g, '');
+        let result = eval(safeExp);
+        if (typeof result === 'number' && isFinite(result)) {
+          result = Math.round((result + Number.EPSILON) * 1e10) / 1e10;
+          addToHistory(origExp, result);
+          expression = result.toString();
+          lastInput = '';
+          justCalculated = true;
+          updateDisplay();
+        } else {
+          display.textContent = 'Error';
+        }
+      } catch {
+        display.textContent = 'Error';
+      }
+    }
+
+    function addToHistory(expr, result) {
+      if (expr.trim() === '') return;
+      history.unshift({ expr, result });
+      if (history.length > 20) history.pop(); // Limit history length
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const historyList = document.getElementById('history-list');
+      historyList.innerHTML = '';
+      if (history.length === 0) {
+        historyList.innerHTML = '<div style=\"color:#aaa;text-align:center;\">No history yet.</div>';
+        return;
+      }
+      history.forEach(item => {
+        const entry = document.createElement('div');
+        entry.className = 'history-entry';
+        entry.innerHTML = `<span class=\"history-expression\">${item.expr}</span> = <span class=\"history-result\">${item.result}</span>`;
+        historyList.appendChild(entry);
+      });
+    }
+
+    document.querySelector('.buttons').addEventListener('click', (e) => {
+      if (!e.target.matches('button')) return;
+      const action = e.target.dataset.action;
+      const value = e.target.dataset.value;
+      if (action === 'digit') {
+        appendValue(value);
+      } else if (action === 'operator') {
+        appendValue(value);
+      } else if (action === 'decimal') {
+        appendValue('.');
+      } else if (action === 'paren') {
+        handleParen(e.target.textContent);
+      } else if (action === 'clear') {
+        clearAll();
+      } else if (action === 'equals') {
+        calculate();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key >= '0' && e.key <= '9') {
+        appendValue(e.key);
+      } else if ('+-*/'.includes(e.key)) {
+        appendValue(e.key);
+      } else if (e.key === '.') {
+        appendValue('.');
+      } else if (e.key === '(' || e.key === ')') {
+        handleParen(e.key);
+      } else if (e.key === 'Enter' || e.key === '=') {
+        calculate();
+        e.preventDefault();
+      } else if (e.key === 'Backspace') {
+        if (expression.length > 0) {
+          if (expression.slice(-1) === '(') parenBalance--;
+          if (expression.slice(-1) === ')') parenBalance++;
+          expression = expression.slice(0, -1);
+          lastInput = expression.slice(-1);
+          updateDisplay();
+        }
+      } else if (e.key === 'Escape' || e.key === 'c' || e.key === 'C') {
+        clearAll();
+      }
+    });
+
+    document.getElementById('clear-history-btn').addEventListener('click', () => {
+      history = [];
+      renderHistory();
+    });
+
+    // Initial render
+    renderHistory();
+  </script>
+</body>
+</html>
